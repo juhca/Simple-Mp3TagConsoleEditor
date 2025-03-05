@@ -111,6 +111,61 @@ class Program
 
     private static void EditMetadata(TagLib.File file)
     {
-        Console.WriteLine($"Edit metadata {file.Tag.Title}");
+        string? choice;
+        while (true)
+        {
+            Console.WriteLine("\nSelect a field to edit:");
+            Console.WriteLine("1. Title");
+            Console.WriteLine("2. Artists");
+            Console.WriteLine("3. Album");
+            Console.WriteLine("4. Year");
+            Console.WriteLine("5. Track Number");
+            Console.WriteLine("6. Genres");
+            Console.WriteLine("7. Comment");
+            Console.WriteLine("8. Save and Exit");
+            Console.WriteLine("9. Exit without saving");
+            
+            Console.Write("Enter your choice: ");
+            choice = Console.ReadLine();
+
+            switch (choice)
+            {
+                case "1":
+                    Console.Write("Enter title: ");
+                    file.Tag.Title = Console.ReadLine();
+                    break;
+                case "2":
+                    Console.Write("Enter artists: ");
+                    break;
+                case "3":
+                    Console.Write("Enter album: ");
+                    file.Tag.Album = Console.ReadLine();
+                    break;
+                case "4":
+                    Console.Write("Enter year: ");
+                    break;
+                case "5":
+                    Console.Write("Enter track number: ");
+                    break;
+                case "6":
+                    Console.Write("Enter genres: ");
+                    break;
+                case "7":
+                    Console.Write("Enter comment: ");
+                    break;
+                case "8":
+                    Console.Write("Saving and exiting...");
+                    file.Save();
+                    return;
+                case "9":
+                    Console.Write("Exiting without saving... ");
+                    return;
+                default:
+                    Console.WriteLine("Invalid choice");
+                    break;
+            }
+            
+        }
+        
     }
 }
