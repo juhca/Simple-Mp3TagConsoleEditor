@@ -55,15 +55,13 @@ class Program
     private static void ShowMetadata(TagLib.File file)
     {
         Console.WriteLine($"\nShowing metadata: {file.Tag.Title}\n");
-        TagLib.Tag tags = file.Tag;
-        TagLib.Properties properties = file.Properties;
 
         // reflection
-        PropertyInfo[] tagProperties = tags.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
-        PropertyInfo[] propProperties = properties.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        PropertyInfo[] tagProperties = file.Tag.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        PropertyInfo[] propProperties = file.Properties.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
         
-        DisplayProperties(tagProperties, tags);
-        DisplayProperties(propProperties, properties);
+        DisplayProperties(tagProperties, file.Tag);
+        DisplayProperties(propProperties, file.Properties);
     }
 
     private static void DisplayProperties(PropertyInfo[] properties, object tagLibObject)
@@ -111,7 +109,6 @@ class Program
 
     private static void EditMetadata(TagLib.File file)
     {
-        string? choice;
         while (true)
         {
             Console.WriteLine("\nSelect a field to edit:");
@@ -126,32 +123,55 @@ class Program
             Console.WriteLine("9. Exit without saving");
             
             Console.Write("Enter your choice: ");
-            choice = Console.ReadLine();
+            var choice = Console.ReadLine();
 
             switch (choice)
             {
                 case "1":
                     Console.Write("Enter title: ");
-                    file.Tag.Title = Console.ReadLine();
+                    file.Tag.Title = Console.ReadLine()?.Trim();
                     break;
                 case "2":
-                    Console.Write("Enter artists: ");
+                    Console.Write("Enter artists (separated by comma): ");
+                    var artists = Console.ReadLine();
+                    file.Tag.AlbumArtists = string.IsNullOrEmpty(artists) ? 
+                        [] : artists.Split(',').Select(x => x.Trim()).ToArray();
                     break;
                 case "3":
                     Console.Write("Enter album: ");
-                    file.Tag.Album = Console.ReadLine();
+                    file.Tag.Album = Console.ReadLine()?.Trim();
                     break;
                 case "4":
                     Console.Write("Enter year: ");
+                    if (uint.TryParse(Console.ReadLine(), out var parsedYear))
+                    {
+                        file.Tag.Year = parsedYear;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid year. Must be a positive number.");
+                    }
                     break;
                 case "5":
                     Console.Write("Enter track number: ");
+                    if (uint.TryParse(Console.ReadLine(), out var trackNumber))
+                    {
+                        file.Tag.Track = trackNumber;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid track number. Must be a positive number.");
+                    }
                     break;
                 case "6":
-                    Console.Write("Enter genres: ");
+                    Console.Write("Enter genres: (separated by comma): ");
+                    var genres = Console.ReadLine();
+                    file.Tag.Genres = string.IsNullOrEmpty(genres) ? 
+                        [] : genres.Split(',').Select(x => x.Trim()).ToArray();
                     break;
                 case "7":
                     Console.Write("Enter comment: ");
+                    file.Tag.Comment = Console.ReadLine()?.Trim();
                     break;
                 case "8":
                     Console.Write("Saving and exiting...");
@@ -164,8 +184,6 @@ class Program
                     Console.WriteLine("Invalid choice");
                     break;
             }
-            
         }
-        
     }
 }
