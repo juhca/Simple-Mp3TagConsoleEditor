@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using TagLib;
 
 namespace Mp3TagConsoleEditor;
 
@@ -16,6 +17,12 @@ class Program
         {
             var tfile = TagLib.File.Create(args[0]);
 
+            if (tfile.Properties.MediaTypes != MediaTypes.Audio)
+            {
+                Console.WriteLine("Unsupported media type");
+                return;
+            }
+            
             string? mode;
             do
             {
@@ -53,14 +60,22 @@ class Program
 
         // reflection
         PropertyInfo[] tagProperties = tags.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
-        foreach (var tag in tagProperties)
+        PropertyInfo[] propProperties = properties.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        
+        DisplayProperties(tagProperties, tags);
+        DisplayProperties(propProperties, properties);
+    }
+
+    private static void DisplayProperties(PropertyInfo[] properties, object tagLibObject)
+    {
+        foreach (var property in properties)
         {
             try
             {
-                var name = tag.Name;
-                var value = tag.GetValue(tags, null);
+                var name = property.Name;
+                var value = property.GetValue(tagLibObject, null);
                 if (value == null) continue;
-                
+
                 if (name.Contains("StartTag") || name.Contains("EndTag") || name.Contains("Joined"))
                 {
                     continue;
@@ -68,31 +83,30 @@ class Program
 
                 if (value is Array array)
                 {
-                    if (array.Length == 0)
+                    switch (array.Length)
                     {
-                        Console.WriteLine($"{tag.Name}: /");
-                    }
-                    else if (array.Length == 1)
-                    {
-                        Console.WriteLine($"{tag.Name}: {array.GetValue(0) ?? '/'}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"{tag.Name}: [{string.Join(", ", array.Cast<object>())}]");
+                        case 0:
+                            Console.WriteLine($"{property.Name}: /");
+                            break;
+                        case 1:
+                            Console.WriteLine($"{property.Name}: {array.GetValue(0) ?? '/'}");
+                            break;
+                        default:
+                            Console.WriteLine($"{property.Name}: [{string.Join(", ", array.Cast<object>())}]");
+                            break;
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"{tag.Name}: {value}");
+                    Console.WriteLine($"{property.Name}: {value}");
                 }
             }
             catch (Exception ex)
             {
-                continue;
             }
         }
         
-        
+        Console.WriteLine("\n=========================\n");
     }
 
     private static void EditMetadata(TagLib.File file)
